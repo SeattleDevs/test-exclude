@@ -1,8 +1,8 @@
 'use strict';
 
 const path = require('path');
-const { glob } = require('glob');
-const { minimatch } = require('minimatch');
+const { glob, globSync } = require('tinyglobby');
+const micromatch = require('micromatch');
 const { defaults } = require('@istanbuljs/schema');
 const isOutsideDir = require('./is-outside-dir');
 
@@ -95,7 +95,7 @@ class TestExclude {
         }
 
         const dot = { dot: true };
-        const matches = pattern => minimatch(pathToCheck, pattern, dot);
+        const matches = pattern => micromatch.isMatch(pathToCheck, pattern, dot);
         return (
             (!this.include || this.include.some(matches)) &&
             (!this.exclude.some(matches) || this.excludeNegated.some(matches))
@@ -111,8 +111,7 @@ class TestExclude {
             globOptions.ignore = this.exclude;
         }
 
-        return glob
-            .sync(globPatterns, globOptions)
+        return globSync(globPatterns, globOptions)
             .filter(file => this.shouldInstrument(path.resolve(cwd, file)));
     }
 
