@@ -5,6 +5,8 @@ on:
   pull_request:
     types: [assigned, opened, synchronize, reopened, labeled]
   workflow_dispatch:
+permissions:
+  contents: read
 name: ci
 jobs:
   test:
@@ -12,10 +14,10 @@ jobs:
     strategy:
       fail-fast: false
       matrix:
-        node: [18, 20]
+        node: [22, 24]
     steps:
-      - uses: actions/checkout@v4
-      - uses: actions/setup-node@v4
+      - uses: actions/checkout@v6
+      - uses: actions/setup-node@v6
         with:
           node-version: ${{ matrix.node }}
           cache: npm
@@ -25,11 +27,29 @@ jobs:
   windows:
     runs-on: windows-latest
     steps:
-      - uses: actions/checkout@v4
-      - uses: actions/setup-node@v4
+      - uses: actions/checkout@v6
+      - uses: actions/setup-node@v6
         with:
           node-version: lts/*
           cache: npm
       - run: npm config set update-notifier false
       - run: npm ci
       - run: npm test
+  dependabot-automerge:
+    needs: [test, windows]
+    if: >
+      github.event_name == 'pull_request' &&
+      github.event.pull_request.user.login == 'dependabot[bot]'
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write
+      pull-requests: write
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v6
+      - name: Automerge Dependabot PRs if all checks have passed
+        shell: bash
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          gh pr merge --squash ${{ github.event.pull_request.number }}
