@@ -30,7 +30,7 @@
   },
   "homepage": "https://istanbul.js.org/",
   "dependencies": {
-    "@istanbuljs/schema": "^0.1.3",
+    "@istanbuljs/schema": "^0.1.6",
     "micromatch": "^4.0.8",
     "tinyglobby": "^0.2.16"
   },
